@@ -157,6 +157,14 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .collection-item:hover {
+            background: #f0f8ff;
+            border-color: #2a75bb;
+            transform: translateY(-1px);
         }
 
         .remove-btn {
@@ -171,6 +179,58 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* 大图预览页面样式 */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .preview-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .preview-img {
+            width: 300px;
+            height: 300px;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+
+        .preview-name {
+            font-size: 28px;
+            color: #2a75bb;
+            margin-bottom: 10px;
+        }
+
+        .close-btn {
+            padding: 10px 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .close-btn:hover {
+            background: #ff4d4d;
         }
     </style>
 </head>
@@ -201,9 +261,20 @@
         </div>
     </div>
 
+    <!-- 大图预览弹窗 -->
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-content">
+            <img src="" alt="宝可梦大图" class="preview-img" id="previewImg">
+            <div class="preview-name" id="previewName"></div>
+            <button class="close-btn" onclick="closePreview()">关闭</button>
+        </div>
+    </div>
+
     <script>
         // 宝可梦收藏列表
         let pokemonCollection = [];
+        // 当前预览的宝可梦数据
+        let currentPreviewPokemon = null;
 
         // 随机生成宝可梦
         async function generateRandomPokemon() {
@@ -252,6 +323,7 @@
             const name = document.getElementById('pokemonName').textContent;
             const id = document.getElementById('pokemonId').textContent.replace('编号: #', '');
             const type = document.getElementById('pokemonType').textContent;
+            const imgUrl = document.getElementById('pokemonImg').src;
             
             // 检查是否已收藏
             const isAlreadySaved = pokemonCollection.some(p => p.id === id);
@@ -261,7 +333,7 @@
             }
 
             // 添加到收藏列表
-            const pokemon = { id, name, type };
+            const pokemon = { id, name, type, imgUrl };
             pokemonCollection.push(pokemon);
             
             // 更新收藏列表显示
@@ -278,12 +350,24 @@
             pokemonCollection.forEach((pokemon, index) => {
                 const item = document.createElement('div');
                 item.className = 'collection-item';
+                item.setAttribute('data-index', index);
+                
+                // 点击收藏项展示大图
+                item.onclick = (e) => {
+                    // 阻止事件冒泡到移除按钮
+                    if (e.target.classList.contains('remove-btn')) return;
+                    openPreview(pokemon);
+                };
                 
                 // 创建移除按钮
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'remove-btn';
                 removeBtn.textContent = '×';
-                removeBtn.onclick = () => removePokemon(index);
+                // 移除按钮单独绑定事件
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    removePokemon(index);
+                };
                 
                 // 设置收藏项内容
                 item.innerHTML = `#${pokemon.id} ${pokemon.name} (${pokemon.type})`;
@@ -303,6 +387,34 @@
             const removed = pokemonCollection.splice(index, 1)[0];
             updateCollectionList();
             alert(`已移除 ${removed.name} ❌`);
+        }
+
+        // 打开大图预览
+        function openPreview(pokemon) {
+            const modal = document.getElementById('previewModal');
+            document.getElementById('previewImg').src = pokemon.imgUrl;
+            document.getElementById('previewName').textContent = pokemon.name;
+            
+            // 显示预览弹窗（新页面效果）
+            modal.style.display = 'flex';
+            // 禁止背景滚动
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭大图预览
+        function closePreview() {
+            const modal = document.getElementById('previewModal');
+            modal.style.display = 'none';
+            // 恢复背景滚动
+            document.body.style.overflow = 'auto';
+        }
+
+        // 点击弹窗外部关闭
+        window.onclick = function(e) {
+            const modal = document.getElementById('previewModal');
+            if (e.target === modal) {
+                closePreview();
+            }
         }
 
         // 页面加载时初始化
