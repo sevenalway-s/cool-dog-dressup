@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机宝可梦生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0f8ff, #e6f7ff);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 32px;
+            color: #ffcb05;
+            text-shadow: 0 2px 4px #2a75bb;
+            margin: 20px 0 30px;
+            text-align: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            border: 3px solid #2a75bb;
+        }
+
+        .pokemon-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #f8f9fa, #e9ecef);
+            min-height: 350px;
+            justify-content: center;
+        }
+
+        .pokemon-img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .pokemon-img:hover {
+            transform: scale(1.1);
+        }
+
+        .pokemon-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .pokemon-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .info-tag {
+            background: #2a75bb;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .type-tag {
+            background: #ffcb05;
+            color: #2a75bb;
+            font-weight: bold;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .generate-btn {
+            background: linear-gradient(90deg, #ffcb05, #ffde59);
+            color: #2a75bb;
+        }
+
+        .catch-btn {
+            background: linear-gradient(90deg, #2a75bb, #3c8bd6);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .collection {
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .collection-title {
+            font-size: 18px;
+            color: #2a75bb;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .collection-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .collection-item {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .collection-item:hover {
+            background: #f0f8ff;
+            border-color: #2a75bb;
+            transform: translateY(-1px);
+        }
+
+        .remove-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* 大图预览页面样式 */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .preview-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .preview-img {
+            width: 300px;
+            height: 300px;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+
+        .preview-name {
+            font-size: 28px;
+            color: #2a75bb;
+            margin-bottom: 10px;
+        }
+
+        .close-btn {
+            padding: 10px 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .close-btn:hover {
+            background: #ff4d4d;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">🎮 随机宝可梦生成器</div>
+
+    <div class="container">
+        <div class="pokemon-card" id="pokemonCard">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png" 
+                 alt="宝可梦" class="pokemon-img" id="pokemonImg">
+            <div class="pokemon-name" id="pokemonName">皮卡丘</div>
+            <div class="pokemon-info">
+                <span class="info-tag type-tag" id="pokemonType">电</span>
+                <span class="info-tag" id="pokemonId">编号: #025</span>
+                <span class="info-tag" id="pokemonHeight">身高: 0.4m</span>
+                <span class="info-tag" id="pokemonWeight">体重: 6.0kg</span>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button class="btn generate-btn" onclick="generateRandomPokemon()">🎲 随机生成</button>
+            <button class="btn catch-btn" onclick="catchPokemon()">🎯 捕获</button>
+        </div>
+
+        <div class="collection">
+            <div class="collection-title">我的宝可梦图鉴</div>
+            <div class="collection-list" id="collectionList"></div>
+        </div>
+    </div>
+
+    <!-- 大图预览弹窗 -->
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-content">
+            <img src="" alt="宝可梦大图" class="preview-img" id="previewImg">
+            <div class="preview-name" id="previewName"></div>
+            <button class="close-btn" onclick="closePreview()">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        // 宝可梦图鉴列表
+        let pokemonCollection = [];
+        // 当前预览的宝可梦数据
+        let currentPreviewPokemon = null;
+
+        // 随机生成宝可梦
+        async function generateRandomPokemon() {
+            // 随机生成1-151的宝可梦编号（初代宝可梦）
+            const pokemonId = Math.floor(Math.random() * 151) + 1;
+            
+            try {
+                // 从PokeAPI获取宝可梦数据
+                const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
+                const data = await response.json();
+
+                // 更新页面显示
+                document.getElementById('pokemonImg').src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`;
+                document.getElementById('pokemonName').textContent = data.name.charAt(0).toUpperCase() + data.name.slice(1);
+                document.getElementById('pokemonId').textContent = `编号: #${String(pokemonId).padStart(3, '0')}`;
+                document.getElementById('pokemonType').textContent = data.types[0].type.name;
+                document.getElementById('pokemonHeight').textContent = `身高: ${(data.height / 10).toFixed(1)}m`;
+                document.getElementById('pokemonWeight').textContent = `体重: ${(data.weight / 10).toFixed(1)}kg`;
+
+                // 给属性标签添加对应颜色
+                const typeTag = document.getElementById('pokemonType');
+                setTypeColor(typeTag, data.types[0].type.name);
+
+            } catch (error) {
+                console.error('获取宝可梦数据失败:', error);
+                alert('生成失败！请重试～');
+            }
+        }
+
+        // 根据属性设置标签颜色
+        function setTypeColor(element, type) {
+            const typeColors = {
+                normal: '#A8A878', fire: '#F08030', water: '#6890F0',
+                electric: '#F8D030', grass: '#78C850', ice: '#98D8D8',
+                fighting: '#C03028', poison: '#A040A0', ground: '#E0C068',
+                flying: '#A890F0', psychic: '#F85888', bug: '#A8B820',
+                rock: '#B8A038', ghost: '#705898', dragon: '#7038F8',
+                dark: '#705848', steel: '#B8B8D0', fairy: '#EE99AC'
+            };
+            
+            element.style.background = typeColors[type] || '#A8A878';
+        }
+
+        // 捕获宝可梦
+        function catchPokemon() {
+            const name = document.getElementById('pokemonName').textContent;
+            const id = document.getElementById('pokemonId').textContent.replace('编号: #', '');
+            const type = document.getElementById('pokemonType').textContent;
+            const imgUrl = document.getElementById('pokemonImg').src;
+            
+            // 检查是否已捕获
+            const isAlreadyCaught = pokemonCollection.some(p => p.id === id);
+            if (isAlreadyCaught) {
+                alert(`${name} 已经在你的图鉴里啦～`);
+                return;
+            }
+
+            // 添加到图鉴列表
+            const pokemon = { id, name, type, imgUrl };
+            pokemonCollection.push(pokemon);
+            
+            // 更新图鉴列表显示
+            updateCollectionList();
+            
+            alert(`成功捕获 ${name} ✨`);
+        }
+
+        // 更新图鉴列表显示
+        function updateCollectionList() {
+            const listContainer = document.getElementById('collectionList');
+            listContainer.innerHTML = '';
+
+            pokemonCollection.forEach((pokemon, index) => {
+                const item = document.createElement('div');
+                item.className = 'collection-item';
+                item.setAttribute('data-index', index);
+                
+                // 点击图鉴项展示大图
+                item.onclick = (e) => {
+                    // 阻止事件冒泡到移除按钮
+                    if (e.target.classList.contains('remove-btn')) return;
+                    openPreview(pokemon);
+                };
+                
+                // 创建移除按钮
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.textContent = '×';
+                // 移除按钮单独绑定事件
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    removePokemon(index);
+                };
+                
+                // 设置图鉴项内容
+                item.innerHTML = `#${pokemon.id} ${pokemon.name} (${pokemon.type})`;
+                item.appendChild(removeBtn);
+                
+                listContainer.appendChild(item);
+            });
+
+            // 如果没有捕获，显示提示
+            if (pokemonCollection.length === 0) {
+                listContainer.innerHTML = '<div style="color:#999;">还没有捕获任何宝可梦哦～</div>';
+            }
+        }
+
+        // 移除图鉴中的宝可梦
+        function removePokemon(index) {
+            const removed = pokemonCollection.splice(index, 1)[0];
+            updateCollectionList();
+            alert(`已移除 ${removed.name} ❌`);
+        }
+
+        // 打开大图预览
+        function openPreview(pokemon) {
+            const modal = document.getElementById('previewModal');
+            document.getElementById('previewImg').src = pokemon.imgUrl;
+            document.getElementById('previewName').textContent = pokemon.name;
+            
+            // 显示预览弹窗（新页面效果）
+            modal.style.display = 'flex';
+            // 禁止背景滚动
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭大图预览
+        function closePreview() {
+            const modal = document.getElementById('previewModal');
+            modal.style.display = 'none';
+            // 恢复背景滚动
+            document.body.style.overflow = 'auto';
+        }
+
+        // 点击弹窗外部关闭
+        window.onclick = function(e) {
+            const modal = document.getElementById('previewModal');
+            if (e.target === modal) {
+                closePreview();
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            generateRandomPokemon();
+            updateCollectionList();
+        };
+    </script>
+</body>
+</html>
